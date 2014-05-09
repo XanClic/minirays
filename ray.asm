@@ -23,10 +23,10 @@ dw _start
 
 dw 0
 
-n255:
+something_big:
 objz:
-dd 255.0
-dd 20.0
+dd 150.0
+dd 10.0
 
 n1:
 dd 1.0
@@ -75,13 +75,13 @@ pushad
 cvtsi2ss xmm2,ebx
 cvtsi2ss xmm3,edx
 unpcklps xmm2,xmm3
-shufps  xmm2,[n255],0x04
-pshufd  xmm3,[n255],0x00
+shufps  xmm2,[something_big],0x04
+pshufd  xmm3,[something_big],0x00
 divps   xmm2,xmm3
 xorps   xmm1,xmm1
 xor     bp,bp
 call    trace
-mulss   xmm0,[n255]
+mulss   xmm0,[something_big]
 popad
 cvtss2si eax,xmm0
 stosb
@@ -114,7 +114,7 @@ sqrtps  xmm3,xmm3
 divps   xmm2,xmm3
 
 ; init t on xmm3
-movaps  xmm3,[n255]
+movaps  xmm3,[something_big]
 ; hit is on xmm4
 mov     si,objs
 
@@ -200,7 +200,7 @@ cmp     si,objs_end
 jb      vert_loop
 
 
-comiss  xmm3,[n255]
+comiss  xmm3,[something_big]
 jae     ret_zero
 
 
