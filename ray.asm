@@ -36,7 +36,13 @@ dd 0.01
 neg_light_rev:
 dd -0.5, -0.8, -0.1
 
-objs: db 01010001b,01001010b,01000100b,00001010b,01010001b
+;  o o   o
+; o ooo oo
+; o oo o o
+; o o
+;  o  o o
+;   o ooo
+objs: db 11011010b,10101101b,10001101b,01010101b,01010010b,01110100b
 objs_end:
 
 _start:
