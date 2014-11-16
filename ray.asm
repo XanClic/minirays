@@ -15,14 +15,13 @@ mov     cr4,eax
 mov     ax,0x13
 int     0x10
 
-cld
+xor     ax,ax
+mov     ds,ax
 
 
-db 0xea
-dw _start
+jmp     _start
 
-dw 0
-
+; 0x20 here
 something_big:
 objz:
 dd 150.0
@@ -34,20 +33,14 @@ dd 1.0
 epsilon:
 dd 0.01
 
-light_rev:
-dd 0.5, 0.8, 0.1
+neg_light_rev:
+dd -0.5, -0.8, -0.1
 
 objs: db 01010001b,01001010b,01000100b,00001010b,01010001b
 objs_end:
 
-WIDTH = 7
-
-
 _start:
-xor     ax,ax
-mov     ds,ax
-mov     ss,ax
-mov     esp,0x7c00
+
 
 push    word 0xa000
 pop     es
@@ -66,6 +59,9 @@ inc     al
 jnz     palette_loop
 
 
+xorps   xmm1,xmm1
+
+full_loop:
 xor     di,di
 mov     edx,-99
 loop_y:
@@ -78,9 +74,10 @@ unpcklps xmm2,xmm3
 shufps  xmm2,[something_big],0x04
 pshufd  xmm3,[something_big],0x00
 divps   xmm2,xmm3
-xorps   xmm1,xmm1
+movaps  [0x7e00],xmm1
 xor     bp,bp
 call    trace
+movaps  xmm1,[0x7e00]
 mulss   xmm0,[something_big]
 popad
 cvtss2si eax,xmm0
@@ -92,9 +89,8 @@ inc     edx
 cmp     dx,100
 jle     loop_y
 
-
-cli
-hlt
+addss   xmm1,[epsilon]
+jmp full_loop
 
 
 ; Call:
@@ -133,7 +129,7 @@ sphere:
 xor     edx,edx
 mov     dl,cl
 shl     dl,1
-sub     edx,WIDTH-1
+add     edx,12
 cvtsi2ss xmm5,edx
 xor     edx,edx
 mov     dx,si
@@ -226,8 +222,7 @@ movups  [esp+32],xmm4
 push    bp
 mov     bp,-1
 movaps  xmm1,xmm3
-xorps   xmm2,xmm2
-subps   xmm2,[light_rev]
+movaps  xmm2,[neg_light_rev]
 call    trace
 jnc     not_shadowed
 mov     [esp+50],byte 0
@@ -244,17 +239,17 @@ pop     ax
 test    al,al
 je      indirect
 
-movaps  xmm1,[light_rev]
+movaps  xmm1,[neg_light_rev]
 dpps    xmm1,xmm4,0x7f
 
 xorps   xmm2,xmm2
 comiss  xmm1,xmm2
-jnb     direct
+jb      direct
 indirect:
 xorps   xmm1,xmm1
 direct:
 
-addps   xmm0,xmm1
+subps   xmm0,xmm1
 ret
 ret_zero:
 xorps   xmm0,xmm0
